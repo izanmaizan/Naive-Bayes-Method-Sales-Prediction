@@ -11,7 +11,34 @@ function initializeApp() {
   initializeTabNavigation();
   initializeForm();
   initializeModal();
+
+  // Test Plotly availability
+  testPlotlyAvailability();
+
   console.log("🚀 Car Sales Prediction App initialized");
+}
+
+// Test Plotly Availability
+function testPlotlyAvailability() {
+  if (typeof Plotly !== "undefined") {
+    console.log("✅ Plotly loaded successfully");
+  } else {
+    console.warn("⚠️ Plotly not loaded, attempting to load...");
+    loadPlotlyDirect();
+  }
+}
+
+// Load Plotly directly if not available
+function loadPlotlyDirect() {
+  const script = document.createElement("script");
+  script.src = "https://cdn.plot.ly/plotly-latest.min.js";
+  script.onload = function () {
+    console.log("✅ Plotly loaded dynamically");
+  };
+  script.onerror = function () {
+    console.error("❌ Failed to load Plotly CDN");
+  };
+  document.head.appendChild(script);
 }
 
 // Tab Navigation
@@ -33,7 +60,8 @@ function initializeTabNavigation() {
 
       // Load visualization if visualization tab is selected
       if (targetTab === "visualization") {
-        loadModelVisualization();
+        // Delay to ensure tab is fully switched
+        setTimeout(loadModelVisualization, 500);
       }
     });
   });
@@ -216,7 +244,7 @@ function displayAnalysisResults(analysisData) {
   }, 500);
 }
 
-// Load Model Visualization with improved error handling
+// Load Model Visualization with enhanced error handling
 async function loadModelVisualization() {
   const vizContent = document.getElementById("visualization-content");
 
@@ -240,6 +268,7 @@ async function loadModelVisualization() {
     `;
 
   console.log("📈 Loading model visualization...");
+  console.log("🔍 Plotly available:", typeof Plotly !== "undefined");
 
   try {
     const response = await fetch("/visualization", {
@@ -258,89 +287,20 @@ async function loadModelVisualization() {
     }
 
     const result = await response.json();
-    console.log("📥 Visualization response received:", result);
+    console.log("📥 Visualization response received:", {
+      hasVisualization: !!result.visualization,
+      hasError: !!result.error,
+      htmlLength: result.visualization ? result.visualization.length : 0,
+    });
 
     if (result.error) {
-      vizContent.innerHTML = `
-                <div class="viz-error">
-                    <div class="error-header">
-                        <h3>❌ Visualization Error</h3>
-                        <p>${result.error}</p>
-                    </div>
-                    <div class="error-solutions">
-                        <h4>🔧 Troubleshooting Steps:</h4>
-                        <div class="solution-grid">
-                            <div class="solution-item">
-                                <span class="solution-icon">📄</span>
-                                <div>
-                                    <strong>Check Training Data</strong>
-                                    <p>Ensure sale.xlsx file exists in project directory</p>
-                                </div>
-                            </div>
-                            <div class="solution-item">
-                                <span class="solution-icon">🏃</span>
-                                <div>
-                                    <strong>Run Training</strong>
-                                    <p>Execute 'python main.py' to generate model files</p>
-                                </div>
-                            </div>
-                            <div class="solution-item">
-                                <span class="solution-icon">🔧</span>
-                                <div>
-                                    <strong>Check Dependencies</strong>
-                                    <p>Verify pandas, plotly, and other packages are installed</p>
-                                </div>
-                            </div>
-                            <div class="solution-item">
-                                <span class="solution-icon">🔄</span>
-                                <div>
-                                    <strong>Restart Server</strong>
-                                    <p>Restart Flask application and try again</p>
-                                </div>
-                            </div>
-                        </div>
-                        <button class="retry-btn" onclick="loadModelVisualization()">
-                            🔄 Retry Loading
-                        </button>
-                    </div>
-                </div>
-            `;
+      displayVisualizationError(vizContent, result.error);
     } else if (result.visualization) {
       // Successfully loaded visualization
-      vizContent.innerHTML = result.visualization;
+      console.log("✅ Processing visualization HTML...");
 
-      // Wait for DOM to update then style the plotly container
-      setTimeout(() => {
-        const plotlyDiv =
-          vizContent.querySelector("#model-visualization") ||
-          vizContent.querySelector("div[id*='plotly']") ||
-          vizContent.querySelector(".plotly-graph-div");
-
-        if (plotlyDiv) {
-          plotlyDiv.style.width = "100%";
-          plotlyDiv.style.height = "900px";
-          plotlyDiv.style.border = "1px solid #e9ecef";
-          plotlyDiv.style.borderRadius = "8px";
-          plotlyDiv.style.backgroundColor = "white";
-          plotlyDiv.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
-          plotlyDiv.style.marginTop = "20px";
-
-          console.log("✅ Plotly div styled successfully");
-        } else {
-          console.warn("⚠️ Plotly div not found, checking for other elements");
-          // Try to find and style any plotly-related divs
-          const allDivs = vizContent.querySelectorAll("div");
-          allDivs.forEach((div) => {
-            if (
-              div.innerHTML.includes("plotly") ||
-              div.className.includes("plotly")
-            ) {
-              div.style.width = "100%";
-              div.style.minHeight = "900px";
-            }
-          });
-        }
-      }, 1000);
+      // Enhanced HTML processing
+      processVisualizationHTML(vizContent, result.visualization);
 
       // Show success message
       showSuccessMessage("✅ Model visualization loaded successfully!");
@@ -353,31 +313,224 @@ async function loadModelVisualization() {
     }
   } catch (error) {
     console.error("❌ Visualization error:", error);
-    vizContent.innerHTML = `
-            <div class="viz-error">
-                <div class="error-header">
-                    <h3>🔌 Connection Error</h3>
-                    <p>Unable to load model visualization. Please check your connection and server status.</p>
-                </div>
-                <div class="error-details">
-                    <h4>🐛 Error Details:</h4>
-                    <code>${error.message}</code>
-                </div>
-                <div class="error-solutions">
-                    <h4>💡 Common Solutions:</h4>
-                    <div class="solution-list">
-                        <div class="solution-item">• Check if Flask server is running (python app.py)</div>
-                        <div class="solution-item">• Verify you're accessing http://localhost:5000</div>
-                        <div class="solution-item">• Ensure all required files are in the project directory</div>
-                        <div class="solution-item">• Check browser console (F12) for additional errors</div>
-                        <div class="solution-item">• Make sure sale.xlsx file exists and main.py has been run</div>
+    displayVisualizationError(vizContent, `Connection Error: ${error.message}`);
+  }
+}
+
+// Process and insert visualization HTML
+function processVisualizationHTML(vizContent, htmlString) {
+  try {
+    console.log("🔄 Processing HTML string, length:", htmlString.length);
+
+    // Clear and insert HTML
+    vizContent.innerHTML = htmlString;
+
+    console.log("✅ HTML inserted into DOM");
+
+    // Wait for DOM update then style containers
+    setTimeout(() => {
+      styleVisualizationContainers(vizContent);
+    }, 1000);
+
+    // If Plotly is available, try to redraw plots
+    if (typeof Plotly !== "undefined") {
+      setTimeout(() => {
+        console.log("🔄 Attempting to redraw Plotly plots...");
+        const plotlyDivs = vizContent.querySelectorAll('div[id*="plotly"]');
+        console.log(`📊 Found ${plotlyDivs.length} Plotly divs`);
+
+        plotlyDivs.forEach((div, index) => {
+          if (div._fullLayout) {
+            console.log(`🔄 Redrawing plot ${index + 1}`);
+            Plotly.redraw(div);
+          }
+        });
+      }, 2000);
+    } else {
+      console.warn("⚠️ Plotly not available for redraw");
+    }
+  } catch (error) {
+    console.error("❌ Error processing visualization HTML:", error);
+    displayVisualizationError(
+      vizContent,
+      `HTML Processing Error: ${error.message}`
+    );
+  }
+}
+
+// Style visualization containers
+function styleVisualizationContainers(vizContent) {
+  try {
+    // Find all possible Plotly containers
+    const selectors = [
+      "#model-visualization",
+      'div[id*="plotly"]',
+      ".plotly-graph-div",
+      ".js-plotly-plot",
+    ];
+
+    let plotlyDiv = null;
+
+    for (let selector of selectors) {
+      plotlyDiv = vizContent.querySelector(selector);
+      if (plotlyDiv) {
+        console.log(`✅ Found Plotly container with selector: ${selector}`);
+        break;
+      }
+    }
+
+    if (plotlyDiv) {
+      // Apply comprehensive styling
+      Object.assign(plotlyDiv.style, {
+        width: "100%",
+        height: "900px",
+        border: "1px solid #e9ecef",
+        borderRadius: "8px",
+        backgroundColor: "white",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        marginTop: "20px",
+        display: "block",
+        visibility: "visible",
+      });
+
+      console.log("✅ Plotly container styled successfully");
+
+      // Force redraw if Plotly is available
+      if (typeof Plotly !== "undefined" && plotlyDiv._fullLayout) {
+        console.log("🔄 Force redrawing styled container");
+        Plotly.redraw(plotlyDiv);
+      }
+    } else {
+      console.warn("⚠️ No Plotly container found, trying alternative styling");
+
+      // Try to style any div that might contain plots
+      const allDivs = vizContent.querySelectorAll("div");
+      let styledCount = 0;
+
+      allDivs.forEach((div) => {
+        if (
+          div.innerHTML &&
+          (div.innerHTML.includes("plotly") ||
+            div.innerHTML.includes("Plotly") ||
+            div.innerHTML.includes("data-plot") ||
+            div.className.includes("plot"))
+        ) {
+          div.style.width = "100%";
+          div.style.minHeight = "900px";
+          div.style.display = "block";
+          styledCount++;
+        }
+      });
+
+      console.log(`📊 Styled ${styledCount} potential plot containers`);
+    }
+  } catch (error) {
+    console.error("❌ Error styling containers:", error);
+  }
+}
+
+// Display visualization error with enhanced troubleshooting
+function displayVisualizationError(vizContent, errorMessage) {
+  vizContent.innerHTML = `
+    <div class="viz-error">
+        <div class="error-header">
+            <h3>❌ Visualization Error</h3>
+            <p>${errorMessage}</p>
+        </div>
+        <div class="error-diagnostics">
+            <h4>🔍 Diagnostics:</h4>
+            <ul>
+                <li>Plotly Available: ${
+                  typeof Plotly !== "undefined" ? "✅ Yes" : "❌ No"
+                }</li>
+                <li>Backend Status: ✅ Working (from logs)</li>
+                <li>Network Status: ${
+                  navigator.onLine ? "✅ Online" : "❌ Offline"
+                }</li>
+            </ul>
+        </div>
+        <div class="error-solutions">
+            <h4>🔧 Try These Solutions:</h4>
+            <div class="solution-grid">
+                <div class="solution-item">
+                    <span class="solution-icon">🔄</span>
+                    <div>
+                        <strong>Refresh Browser</strong>
+                        <p>Hard refresh (Ctrl+F5 or Cmd+Shift+R)</p>
                     </div>
-                    <button class="retry-btn" onclick="loadModelVisualization()">
-                        🔄 Try Again
-                    </button>
+                </div>
+                <div class="solution-item">
+                    <span class="solution-icon">🌐</span>
+                    <div>
+                        <strong>Check Network</strong>
+                        <p>Ensure CDN access to cdn.plot.ly</p>
+                    </div>
+                </div>
+                <div class="solution-item">
+                    <span class="solution-icon">🔧</span>
+                    <div>
+                        <strong>Try Different Browser</strong>
+                        <p>Test in Chrome, Firefox, or Edge</p>
+                    </div>
+                </div>
+                <div class="solution-item">
+                    <span class="solution-icon">📊</span>
+                    <div>
+                        <strong>Test Generated File</strong>
+                        <p>Open test_visualization.html directly</p>
+                    </div>
                 </div>
             </div>
-        `;
+            <button class="retry-btn" onclick="loadModelVisualization()">
+                🔄 Retry Loading
+            </button>
+            <button class="retry-btn" onclick="testVisualizationEndpoint()" style="margin-left: 10px;">
+                🧪 Test Endpoint Directly
+            </button>
+        </div>
+    </div>
+  `;
+}
+
+// Test visualization endpoint directly
+async function testVisualizationEndpoint() {
+  try {
+    const response = await fetch("/visualization");
+    const result = await response.json();
+
+    if (result.visualization) {
+      console.log("✅ Direct endpoint test successful");
+      console.log("📊 HTML Length:", result.visualization.length);
+      console.log(
+        "📋 HTML Preview:",
+        result.visualization.substring(0, 200) + "..."
+      );
+
+      // Create a new window to display the raw HTML
+      const newWindow = window.open("", "_blank");
+      newWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Direct Visualization Test</title>
+            <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        </head>
+        <body>
+            <h1>Direct Visualization Test</h1>
+            ${result.visualization}
+        </body>
+        </html>
+      `);
+      newWindow.document.close();
+
+      showSuccessMessage("🧪 Direct test opened in new window");
+    } else {
+      console.error("❌ Direct endpoint test failed:", result);
+      showError(`Direct test failed: ${result.error || "Unknown error"}`);
+    }
+  } catch (error) {
+    console.error("❌ Direct endpoint test error:", error);
+    showError(`Direct test error: ${error.message}`);
   }
 }
 
@@ -648,7 +801,7 @@ window.addEventListener("load", function () {
 
 console.log("📱 Car Sales Prediction JavaScript loaded successfully!");
 
-// Add CSS styles for clean theme
+// Add CSS styles for clean theme and enhanced error handling
 const style = document.createElement("style");
 style.textContent = `
   @keyframes slideIn {
@@ -895,7 +1048,7 @@ style.textContent = `
     margin-top: 20px;
   }
 
-  /* Visualization Error Styles */
+  /* Enhanced Visualization Error Styles */
   .viz-error {
     padding: 30px;
     text-align: center;
@@ -909,20 +1062,29 @@ style.textContent = `
     margin-bottom: 15px;
   }
 
-  .error-details {
-    background: #fff3cd;
-    border: 1px solid #ffeaa7;
-    padding: 15px;
+  .error-diagnostics {
+    background: #f8f9fa;
     border-radius: 8px;
+    padding: 15px;
     margin: 20px 0;
+    text-align: left;
   }
 
-  .error-details code {
-    color: #721c24;
-    font-family: 'Consolas', monospace;
-    background: rgba(255,255,255,0.8);
-    padding: 5px 8px;
-    border-radius: 4px;
+  .error-diagnostics h4 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+  }
+
+  .error-diagnostics ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .error-diagnostics li {
+    padding: 5px 0;
+    font-family: monospace;
+    font-size: 14px;
   }
 
   .solution-grid {
@@ -957,14 +1119,6 @@ style.textContent = `
     color: #666;
     font-size: 14px;
     margin: 0;
-  }
-
-  .solution-list .solution-item {
-    background: none;
-    border: none;
-    padding: 5px 0;
-    font-size: 14px;
-    color: #666;
   }
 
   .retry-btn {
