@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Sales Prediction - AI Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="main-title">Car Sales Prediction</h1>
+            <p class="subtitle">AI-powered customer purchase prediction dengan analisis Gaussian Naive Bayes</p>
+            <div class="separator"></div>
+        </header>
+
+        <!-- Tab Navigation -->
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="prediction">🎯 Prediction</button>
+            <button class="tab-btn" data-tab="analysis">📊 Analysis</button>
+            <button class="tab-btn" data-tab="visualization">📈 Model Visualization</button>
+        </nav>
+
+        <!-- Tab Contents -->
+
+        <!-- Prediction Tab -->
+        <div id="prediction" class="tab-content active">
+            <div class="prediction-container">
+                <!-- Input Form -->
+                <div class="input-section">
+                    <h2 class="section-title">📋 Customer Information</h2>
+
+                    <form id="prediction-form" class="form">
+                        <div class="form-group">
+                            <label for="gender" class="form-label">👤 Gender</label>
+                            <select id="gender" name="gender" class="form-select" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="age" class="form-label">🎂 Age (Years)</label>
+                            <input type="number" id="age" name="age" class="form-input" min="15" max="100"
+                                placeholder="Enter age (15-100)" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="salary" class="form-label">💰 Annual Salary ($)</label>
+                            <input type="number" id="salary" name="salary" class="form-input" min="0"
+                                placeholder="Enter annual salary" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="satisfied" class="form-label">😊 Customer Satisfaction</label>
+                            <select id="satisfied" name="satisfied" class="form-select" required>
+                                <option value="yes">Yes - Satisfied</option>
+                                <option value="no">No - Not Satisfied</option>
+                            </select>
+                        </div>
+
+                        <div class="button-group">
+                            <button type="submit" class="btn btn-primary" id="predict-btn">
+                                <span class="btn-text">🚀 Predict & Analyze</span>
+                                <div class="loading-spinner" style="display: none;"></div>
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="reset-btn">🔄 Reset</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Results Section -->
+                <div class="results-section">
+                    <h2 class="section-title">🎯 Prediction Result</h2>
+                    <div id="results-content" class="results-content">
+                        <div class="placeholder">
+                            <p>💡 Enter customer data and click 'Predict & Analyze' to see the AI prediction result</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Tab -->
+        <div id="analysis" class="tab-content">
+            <div class="analysis-container">
+                <h2 class="section-title">📊 Detailed Process Analysis</h2>
+                <div id="analysis-content" class="analysis-content">
+                    <div class="analysis-placeholder-clean">
+                        <div class="placeholder-header">
+                            <h3>📊 Detailed Process Analysis</h3>
+                            <p>This section will show you the comprehensive step-by-step process of how the Gaussian
+                                Naive Bayes algorithm makes predictions.</p>
+                        </div>
+
+                        <div class="analysis-features-clean">
+                            <h4>📋 The detailed analysis will include:</h4>
+
+                            <div class="feature-grid">
+                                <div class="feature-card">
+                                    <div class="feature-icon">🔢</div>
+                                    <h5>TAHAP 1: INPUT DATA CUSTOMER</h5>
+                                    <ul>
+                                        <li>Customer data summary and validation</li>
+                                        <li>Input validation and error checking</li>
+                                        <li>Data type verification</li>
+                                    </ul>
+                                </div>
+
+                                <div class="feature-card">
+                                    <div class="feature-icon">🔄</div>
+                                    <h5>TAHAP 2: ENCODING DATA KATEGORIKAL</h5>
+                                    <ul>
+                                        <li>Label encoding for Gender (Male/Female → 0/1)</li>
+                                        <li>Label encoding for Satisfaction (no/yes → 0/1)</li>
+                                        <li>Feature vector construction</li>
+                                    </ul>
+                                </div>
+
+                                <div class="feature-card">
+                                    <div class="feature-icon">⚙️</div>
+                                    <h5>TAHAP 3: GAUSSIAN NAIVE BAYES</h5>
+                                    <ul>
+                                        <li>Prior probabilities computation</li>
+                                        <li>Likelihood calculations for each feature</li>
+                                        <li>Training data statistics analysis</li>
+                                    </ul>
+                                </div>
+
+                                <div class="feature-card">
+                                    <div class="feature-icon">🧮</div>
+                                    <h5>TAHAP 4: LIKELIHOOD CALCULATIONS</h5>
+                                    <ul>
+                                        <li>Posterior probability computation</li>
+                                        <li>Class probability comparisons</li>
+                                        <li>Mathematical breakdown</li>
+                                    </ul>
+                                </div>
+
+                                <div class="feature-card">
+                                    <div class="feature-icon">📈</div>
+                                    <h5>TAHAP 5: VISUALISASI PROBABILITAS</h5>
+                                    <ul>
+                                        <li>Probability distribution visualization</li>
+                                        <li>Decision boundary analysis</li>
+                                        <li>Visual probability representation</li>
+                                    </ul>
+                                </div>
+
+                                <div class="feature-card">
+                                    <div class="feature-icon">🎯</div>
+                                    <h5>TAHAP 6: DECISION EXPLANATION</h5>
+                                    <ul>
+                                        <li>Final prediction with reasoning</li>
+                                        <li>Contributing factor analysis</li>
+                                        <li>Business recommendations</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="call-to-action-clean">
+                                🚀 Click 'Predict & Analyze' to see the detailed step-by-step analysis for your specific
+                                customer input!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Visualization Tab -->
+        <div id="visualization" class="tab-content">
+            <div class="visualization-container">
+                <h2 class="section-title">📈 Gaussian Naive Bayes Model Visualization</h2>
+                <div class="viz-explanation">
+                    <p><strong>📊 Interactive Dashboard:</strong> Comprehensive analysis of how the Naive Bayes model
+                        learns from training data and makes predictions based on feature distributions.</p>
+                </div>
+                <div id="visualization-content" class="visualization-content">
+                    <div class="viz-placeholder">
+                        <div class="loading-container">
+                            <p>🔄 Loading interactive model visualization...</p>
+                            <div class="loading-spinner-large"></div>
+                            <p style="margin-top: 20px; font-size: 14px; color: #666;">
+                                📈 Generating Plotly charts and processing model data...
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="error-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>❌ Error</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="error-message"></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>
